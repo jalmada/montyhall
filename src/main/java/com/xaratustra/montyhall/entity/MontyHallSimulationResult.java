@@ -1,12 +1,12 @@
 package com.xaratustra.montyhall.entity;
 
-public class RunResult {
+public class MontyHallSimulationResult implements ISimulationResult<Boolean> {
     private int selected;
     private int revealed;
     private int switchedTo;
     private boolean result;
 
-    public RunResult(
+    public MontyHallSimulationResult(
         int selected,
         int revealed,
         int switchedTo,
@@ -21,10 +21,10 @@ public class RunResult {
     public int getSelected() { return selected; }
     public int getRevealed() { return revealed; }
     public int getSwitchedTo(){ return switchedTo; }
-    public boolean getResult(){ return result; }
+    public Boolean getResult(){ return result; }
 
     public String toString(){
-        return String.format("Selected: %s Host Poisoned: %s Switched To: %s Result: %s", selected, revealed, switchedTo, (result ? "Good" : "Bad"));
+        return String.format("Selected: %s Host: %s Switched To: %s Result: %s", selected, revealed, switchedTo, (result ? "Good" : "Bad"));
     }
 
     public String toString(boolean verbose){

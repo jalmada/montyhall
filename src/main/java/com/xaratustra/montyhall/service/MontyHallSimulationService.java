@@ -1,55 +1,52 @@
 package com.xaratustra.montyhall.service;
 
-import com.xaratustra.montyhall.entity.RunResult;
-import com.xaratustra.montyhall.entity.SimulationResults;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import com.xaratustra.montyhall.entity.MontyHallSimulation;
+import com.xaratustra.montyhall.entity.MontyHallSimulationResult;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public class MontyHallSimulationService implements IMontyHallSimulationService{
+public class MontyHallSimulationService implements ISimulationService<MontyHallSimulationResult> {
 
     @Override
-    public SimulationResults Run(int times) {
+    public List<MontyHallSimulationResult> run(int times, int threadCount) {
         
-        SimulationResults simulationResults = new SimulationResults();
+        ExecutorService executorService = threadCount > 0 
+            ? Executors.newFixedThreadPool(threadCount)
+            : Executors.newCachedThreadPool();
+
+        List<MontyHallSimulationResult> simulationResults = new ArrayList<MontyHallSimulationResult>();
+
+        List<Future<MontyHallSimulationResult>> futureResults = new ArrayList<Future<MontyHallSimulationResult>>();
 
         for(int i = 0; i < times; i++)
         {
-            simulationResults.addRunResult(RunSingleSimulation());
+            Future<MontyHallSimulationResult> futureResult = executorService.submit(new MontyHallSimulation());
+            futureResults.add(futureResult);
         }
+
+        try {
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.MINUTES);
+
+            futureResults.stream().forEach(futureResult -> {
+                    try{
+                        simulationResults.add(futureResult.get());
+                    } catch (ExecutionException ee) {}
+                    catch (InterruptedException ie) {}
+                }
+            );
+        }
+        catch (InterruptedException e){ }
 
         return simulationResults;
-    }
-
-    private RunResult RunSingleSimulation(){
-
-        int[] options = new int[3];
-        options[0] = ((int)(Math.random() * 10)) % 2;
-        options[1] = options[0] == 0 ? 1 : ((int)(Math.random() * 10)) % 2;
-        options[2] = options[0] == 1 &&  options[1] == 1 ? 0 : 1;
-
-        int selected = ((int)(Math.random() * 10)) % 3;
-
-        int revealed = 0;
-        for(int x = 0; x < options.length; x++)
-        {
-            if(selected == x) continue;
-            if(options[x] == 1)
-            {
-                revealed = x;
-                break;
-            }
-        }
-
-        int switchedTo = 0;
-        for (int x = 0; x < options.length; x++)
-        {
-            if(x == selected) continue;
-            if(x == revealed) continue;
-            switchedTo = x;
-            break;
-        }
-        
-        return new RunResult(selected, revealed, switchedTo, options[switchedTo] == 0);
     }
 }
