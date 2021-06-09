@@ -2,6 +2,8 @@ package com.xaratustra.montyhall.service;
 
 import java.util.List;
 
-public interface ISimulationService<T> {
-    List<T> run(int times, int threadCount);
+import com.xaratustra.montyhall.entity.ISimulationRequest;
+
+public interface ISimulationService<T, R extends ISimulationRequest> {
+    List<T> run(R request);
 }

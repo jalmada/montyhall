@@ -4,6 +4,18 @@ import java.util.concurrent.Callable;
 
 public class MontyHallSimulation implements Callable<MontyHallSimulationResult>, ISimulation<Boolean>{
 
+    boolean willSwitch = true;
+    boolean willReveal = true;
+
+    public MontyHallSimulation(){
+
+    }
+
+    public MontyHallSimulation(boolean willSwitch, boolean willReveal){
+        this.willSwitch = willSwitch;
+        this.willReveal = willReveal;
+    }
+
     @Override
     public MontyHallSimulationResult call() throws Exception {
         return run();
@@ -19,24 +31,34 @@ public class MontyHallSimulation implements Callable<MontyHallSimulationResult>,
 
         int selected = ((int)(Math.random() * 10)) % 3;
 
-        int revealed = 0;
-        for(int x = 0; x < options.length; x++)
-        {
-            if(selected == x) continue;
-            if(options[x] == 1)
+        int revealed = -1;
+        if(willReveal){
+            for(int x = 0; x < options.length; x++)
             {
-                revealed = x;
-                break;
+                if(selected == x) continue;
+                if(options[x] == 1)
+                {
+                    revealed = x;
+                    break;
+                }
             }
-        }
+        }   
 
         int switchedTo = selected;
-        for (int x = 0; x < options.length; x++)
-        {
-            if(x == selected) continue;
-            if(x == revealed) continue;
-            switchedTo = x;
-            break;
+        if(willSwitch){
+            if(willReveal){
+                for (int x = 0; x < options.length; x++)
+                {
+                    if(x == selected) continue;
+                    if(x == revealed) continue;
+                    switchedTo = x;
+                    break;
+                }
+            } else {
+                while (switchedTo == selected) {
+                    switchedTo = ((int)(Math.random() * 10)) % 2;
+                } 
+            }
         }
         
         return new MontyHallSimulationResult(selected, revealed, switchedTo, options[switchedTo] == 0);

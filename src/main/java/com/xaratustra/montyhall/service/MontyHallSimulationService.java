@@ -9,16 +9,20 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import com.xaratustra.montyhall.entity.MontyHallSimulation;
+import com.xaratustra.montyhall.entity.MontyHallSimulationRequest;
 import com.xaratustra.montyhall.entity.MontyHallSimulationResult;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public class MontyHallSimulationService implements ISimulationService<MontyHallSimulationResult> {
+public class MontyHallSimulationService implements ISimulationService<MontyHallSimulationResult, MontyHallSimulationRequest> {
 
     @Override
-    public List<MontyHallSimulationResult> run(int times, int threadCount) {
+    public List<MontyHallSimulationResult> run(MontyHallSimulationRequest request) {
         
+        int times = request.getTimes();
+        int threadCount = request.getThreadCount();
+
         ExecutorService executorService = threadCount > 0 
             ? Executors.newFixedThreadPool(threadCount)
             : Executors.newCachedThreadPool();
@@ -29,7 +33,7 @@ public class MontyHallSimulationService implements ISimulationService<MontyHallS
 
         for(int i = 0; i < times; i++)
         {
-            Future<MontyHallSimulationResult> futureResult = executorService.submit(new MontyHallSimulation());
+            Future<MontyHallSimulationResult> futureResult = executorService.submit(new MontyHallSimulation(request.getWillSwitch(), request.getWillReveal()));
             futureResults.add(futureResult);
         }
 
